@@ -3,18 +3,42 @@ include("header_php.php");
 global $mysqli;
 
 
+if (isset($_POST['remove_admin'])){
+    $user_id = $_POST['user_id'];
+    $query = $mysqli->prepare("UPDATE `users` SET is_admin = 0 where id = ?");
+    $query->bind_param("i", $user_id);
+    $res = $query->execute();
+    if ($res == false) {
+        $response['message'] = "Failed removing user Admin Access!";
+        $response['type'] = -1;
+    } else {
+        $response['message'] = "Admin Access Removed of user!";
+        $response['type'] = 1;
+    }
+    echo json_encode($response);
+}
 
+if (isset($_POST['make_admin'])){
+    $user_id = $_POST['user_id'];
+    
+    $query = $mysqli->prepare("UPDATE `users` SET is_admin = 1 where id = ?");
+    $query->bind_param("i",$user_id);
+    $res = $query->execute();
+    if ($res == false) {
+        $response['message'] = "Failed making user Admin!";
+        $response['type'] = -1;
+    } else {
+        $response['message'] = "User Upgraded to Admin";
+        $response['type'] = 1;
+    }
+    echo json_encode($response);
+}
 
 if (isset($_POST['delete_user'])) {
     $user_id = $_POST['delete_br_id'];
 
     $query = $mysqli->prepare("DELETE FROM `users` WHERE id = ?");
     $query->bind_param("i", $user_id);
-
-
-
-
-
     $res = $query->execute();
     // die($res);
     if ($res == false) {
@@ -410,7 +434,27 @@ include("left_sidebar.php");
     }
 
 
+    function remove_admin(id){
+        $.ajax({
+            type: "POST",
+            url: "users.php",
+            data: {"remove_admin": true, "user_id": id},
+            success: function (response) {
+                location.reload();
+            }
+        });
+    }
 
+    function make_admin(id){
+        $.ajax({
+            type: "POST",
+            url: "users.php",
+            data: {"make_admin": true, "user_id": id},
+            success: function (response) {
+                location.reload();
+            }
+        });
+    }
 
     $(document).ready(function () {
         $("#branches_tbl").DataTable({
@@ -625,6 +669,8 @@ include("left_sidebar.php");
 
 
         });
+
+        
 
 
 

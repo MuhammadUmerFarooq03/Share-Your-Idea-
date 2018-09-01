@@ -83,8 +83,13 @@ function getAllUserList() {
                 . "<td>" . $row['username'] . "</td>"
                 . "<td>" . $row['email'] . "</td>"
                 . "<td>" . $row['signup_date'] . "</td>"
-                . "<td> <a class='btn btn-sm btn-danger delete' data='" . $row['id'] . "'><i class='fa fa-trash'></i> Delete</a></td>";
-        $user_list .= "</tr>";
+                . "<td> <a class='btn btn-sm btn-danger delete' data='" . $row['id'] . "'><i class='fa fa-trash'></i> Delete</a>";
+        if($row['is_admin']){
+            $user_list .= " <a class='btn btn-sm btn-danger '  onclick='remove_admin(" . $row['id'] . ")' ><i class='fa fa-user'></i> Remove Admin Access</a>";
+        }else{
+            $user_list .= " <a class='btn btn-sm btn-success ' onclick='make_admin(" . $row['id'] . ")'><i class='fa fa-user'></i> Give Admin Access</a>";
+        }
+        $user_list .= "</td></tr>";
     }
 
 

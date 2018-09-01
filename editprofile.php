@@ -6,50 +6,55 @@ $message_obj = new Message($con, $userLoggedIn);
 
 	if(isset($_POST['update-profile'])){
       // get file
+      if (!empty($_FILES["file"]["name"])){
+        // die();
         $file_name = basename( $_FILES["file"]["name"]);
         
         $target_dir =  "images/";
         $target_file = $target_dir.basename($_FILES["file"]["name"]);
         $uploadOk = 1;
         if($target_file == "images/" ){
-            $target_file ="";
+          $target_file ="";
         }
         $imagetype =  pathinfo($target_file , PATHINFO_EXTENSION);
         
         $check = @getimagesize($_FILES["file"]["tmp_name"]);
         if($check !== false) {
-            $uploadOk = 1;
+          $uploadOk = 1;
         } else {
-            $uploadOk = 0;
+          $uploadOk = 0;
         }
-            
-        if(file_exists($target_file)){
-            $uploadOk =  0;
-        }
+        
         if($imagetype != "jpg" && $imagetype != "png" && $imagetype != "jpeg" && $imagetype != "gif" ) {
-            $uploadOk = 0;
+          $uploadOk = 0;
         }
         
         // got file
-                           
+                            
         if($uploadOk == 1){
-            move_uploaded_file($_FILES["file"]["tmp_name"], $target_file) ;
+          move_uploaded_file($_FILES["file"]["tmp_name"], $target_file) ;
+          $q =  "update `users`  set  `profile_pic` = '" .$target_file."'  where `username` = '".$userLoggedIn."';";
+          $qok = mysqli_query($con, $q);
+          if(!$qok){
+            echo "Noope";
+            die();
+          }
         }
-      
-        if(!empty($_POST['first_name'])&&!empty($_POST['last_name'])){
-            
+      }
+      if(!empty($_POST['first_name'])&&!empty($_POST['last_name'])){
+          
         $fname =  $_POST['first_name'];
         $lname =  $_POST['last_name'];
             
-        $q =  "update `users`  set `first_name` = '".$fname."'  , `last_name` = '".$lname. "' , `profile_pic` = '" .$target_file."' where `username` = '".$userLoggedIn."';";
-    	 $qok = mysqli_query($con, $q);
-         if(!$qok){
-         	echo "Nae Bhai";
-         }
-         // header("Location: editprofile.php?profile_username=".$userLoggedIn."");
+        $q =  "update `users`  set `first_name` = '".$fname."'  , `last_name` = '".$lname. "'  where `username` = '".$userLoggedIn."';";
+        $qok = mysqli_query($con, $q);
+        if(!$qok){
+        echo "Nae Bhai";
+        }
+        header("Location: editprofile.php?profile_username=".$userLoggedIn."");
             
         } else{
-           // $e = "*Empty Fields";
+            // $e = "*Empty Fields";
         }               
         
     }
@@ -99,41 +104,52 @@ if(isset($_POST['post_message'])) {
 
  ?>
 
- 	<style type="text/css">
-	 	.wrapper {
-	 		margin-left: 0px;
-			padding-left: 0px;
-	 	}
-     .side-profile-link-color{
-      color: #fff !important;
-    }
-    .side-profile-link-color:hover{
-      color: #fff !important;
-      text-decoration: underline;
-    }
+<style type="text/css">
+  .wrapper {
+    margin-left: 0px;
+    padding-left: 0px;
+  }
 
- 	</style>
-	
- 	<div class="profile_left">
- 		<img src="<?php echo $user_array['profile_pic']; ?>">
+  .side-profile-link-color {
+    color: #fff !important;
+  }
 
- 		<div class="profile_info">
- 			<p><?php echo "Ideas: " . $user_array['num_posts']; ?></p>
- 			<p><?php echo "Likes: " . $user_array['num_likes']; ?></p>
+  .side-profile-link-color:hover {
+    color: #fff !important;
+    text-decoration: underline;
+  }
+</style>
 
-      <?php
+<div class="profile_left">
+  <img src="<?php if($user_array['profile_pic']){echo $user_array['profile_pic'];}else{echo "assets\images\profile_pics\defaults\default_profile.jpeg"; }?>">
+
+  <div class="profile_info">
+    <p>
+      <?php echo "Ideas: " . $user_array['num_posts']; ?>
+    </p>
+    <p>
+      <?php echo "Likes: " . $user_array['num_likes']; ?>
+    </p>
+
+    <?php
         $profile_user_obj = new User($con, $username);
         if($profile_user_obj->isAdmin($userLoggedIn)) {
-          ?><p><?php echo '<a href="http://localhost:1234/background_Video_Slider/Demo/admin/index.php" name="remove_friend" class="side-profile-link-color" >Go to Admin</a>' ?></p><?php
+          ?>
+    <p>
+      <?php echo '<a href="http://localhost:1234/background_Video_Slider/Demo/admin/index.php" name="remove_friend" class="side-profile-link-color" >Go to Admin</a>' ?>
+    </p>
+    <?php
         }
 
-      ?>  
-	  <p><?php echo '<a href="http://localhost:1234/background_Video_Slider/Demo/editprofile.php?profile_username='. $userLoggedIn.'" name="remove_friend" class="side-profile-link-color" >Edit Profile</a>'; ?></p>
-      
- 		</div>
+      ?>
+    <p>
+      <?php echo '<a href="http://localhost:1234/background_Video_Slider/Demo/editprofile.php?profile_username='. $userLoggedIn.'" name="remove_friend" class="side-profile-link-color" >Edit Profile</a>'; ?>
+    </p>
 
- 		<form action="<?php echo $username; ?>" method="POST">
- 			<?php 
+  </div>
+
+  <form action="<?php echo $username; ?>" method="POST">
+    <?php 
  			$profile_user_obj = new User($con, $username); 
  			if($profile_user_obj->isClosed()) {
  				header("Location: user_closed.php");
@@ -158,58 +174,58 @@ if(isset($_POST['post_message'])) {
  			}
 
  			?>
- 		</form>
- 	<!-- 	<input type="submit" class="deep_blue" data-toggle="modal" data-target="#post_form" value="Post Something"> -->
-  
-
- 	</div>
+  </form>
+  <!-- 	<input type="submit" class="deep_blue" data-toggle="modal" data-target="#post_form" value="Post Something"> -->
 
 
-	<div class="profile_main_column column">
-
-	    <ul class="nav nav-tabs" role="tablist" id="profileTabs">
-	      <li role="presentation" class="active"><a href="#newsfeed_div" aria-controls="newsfeed_div" role="tab" data-toggle="tab">Profile</a></li>
-	      
-	    </ul>
-
-	    <div class="tab-content">
-
-	      <div role="tabpanel" class="tab-pane fade in active" id="newsfeed_div">
-			 <form action="#"  method="POST" enctype="multipart/form-data"> 
-			 		
-			 		<div class="form-group">
-			 			<label for="name">First Name</label>
-			 			<input type="text" id="first_name" value="<?= $user['first_name']; ?>" name="first_name" class="form-control">
-			 		</div>
+</div>
 
 
-			 		<div class="form-group">
-			 			<label for="last_name">Last Name</label>
-			 			<input type="text" id="last_name" name="last_name" value="<?= $user['last_name']; ?>" class="form-control">
-			 		</div>
+<div class="profile_main_column column">
 
-			 		<div class="form-group">
-			 			<label for="image">Profile Image</label>
-			 			<input type="file" id="image" name="file" class="form-control">
-			 		</div>
+  <ul class="nav nav-tabs" role="tablist" id="profileTabs">
+    <li role="presentation" class="active"><a href="#newsfeed_div" aria-controls="newsfeed_div" role="tab" data-toggle="tab">Profile</a></li>
 
-			 		<div class="form-group">
-			 			<input type="submit" name="update-profile" class="btn btn-primary">
-			 		</div>
+  </ul>
 
-			 </form>
-	        <img id="loading" src="assets/images/icons/loading.gif">
-	      </div>
+  <div class="tab-content">
 
+    <div role="tabpanel" class="tab-pane fade in active" id="newsfeed_div">
+      <form action="#" method="POST" enctype="multipart/form-data">
 
-	      
-	     </div>
+        <div class="form-group">
+          <label for="name">First Name</label>
+          <input type="text" id="first_name" value="<?= $user['first_name']; ?>" name="first_name" class="form-control">
+        </div>
 
 
+        <div class="form-group">
+          <label for="last_name">Last Name</label>
+          <input type="text" id="last_name" name="last_name" value="<?= $user['last_name']; ?>" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="image">Profile Image</label>
+          <input type="file" id="image" name="file" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <input type="submit" name="update-profile" class="btn btn-primary">
+        </div>
+
+      </form>
+      <img id="loading" src="assets/images/icons/loading.gif">
     </div>
 
 
-	</div>
+
+  </div>
+
+
+</div>
+
+
+</div>
 
 <!-- Modal -->
 <div class="modal fade" id="post_form" tabindex="-1" role="dialog" aria-labelledby="postModalLabel" aria-hidden="true">
@@ -222,15 +238,15 @@ if(isset($_POST['post_message'])) {
       </div>
 
       <div class="modal-body">
-      	<p>This will appear on the user's profile page and also their newsfeed for your friends to see!</p>
+        <p>This will appear on the user's profile page and also their newsfeed for your friends to see!</p>
 
-      	<form class="profile_post" action="" method="POST">
-      		<div class="form-group">
-      			<textarea class="form-control" name="post_body"></textarea>
-      			<input type="hidden" name="user_from" value="<?php echo $userLoggedIn; ?>">
-      			<input type="hidden" name="user_to" value="<?php echo $username; ?>">
-      		</div>
-      	</form>
+        <form class="profile_post" action="" method="POST">
+          <div class="form-group">
+            <textarea class="form-control" name="post_body"></textarea>
+            <input type="hidden" name="user_from" value="<?php echo $userLoggedIn; ?>">
+            <input type="hidden" name="user_to" value="<?php echo $username; ?>">
+          </div>
+        </form>
       </div>
 
 
@@ -247,7 +263,7 @@ if(isset($_POST['post_message'])) {
   var userLoggedIn = '<?php echo $userLoggedIn; ?>';
   var profileUsername = '<?php echo $username; ?>';
 
-  $(document).ready(function() {
+  $(document).ready(function () {
 
     $('#loading').show();
 
@@ -256,30 +272,31 @@ if(isset($_POST['post_message'])) {
       url: "includes/handlers/ajax_load_profile_posts.php",
       type: "POST",
       data: "page=1&userLoggedIn=" + userLoggedIn + "&profileUsername=" + profileUsername,
-      cache:false,
+      cache: false,
 
-      success: function(data) {
+      success: function (data) {
         $('#loading').hide();
         $('.posts_area').html(data);
       }
     });
 
-    $(window).scroll(function() {
+    $(window).scroll(function () {
       var height = $('.posts_area').height(); //Div containing posts
       var scroll_top = $(this).scrollTop();
       var page = $('.posts_area').find('.nextPage').val();
       var noMorePosts = $('.posts_area').find('.noMorePosts').val();
 
-      if ((document.body.scrollHeight == document.body.scrollTop + window.innerHeight) && noMorePosts == 'false') {
+      if ((document.body.scrollHeight == document.body.scrollTop + window.innerHeight) && noMorePosts ==
+        'false') {
         $('#loading').show();
 
         var ajaxReq = $.ajax({
           url: "includes/handlers/ajax_load_profile_posts.php",
           type: "POST",
           data: "page=" + page + "&userLoggedIn=" + userLoggedIn + "&profileUsername=" + profileUsername,
-          cache:false,
+          cache: false,
 
-          success: function(response) {
+          success: function (response) {
             $('.posts_area').find('.nextPage').remove(); //Removes current .nextpage 
             $('.posts_area').find('.noMorePosts').remove(); //Removes current .nextpage 
 
@@ -296,13 +313,13 @@ if(isset($_POST['post_message'])) {
 
 
   });
-
-  </script>
-
+</script>
 
 
 
 
-	</div>
+
+</div>
 </body>
+
 </html>

@@ -243,7 +243,8 @@ textarea:focus {
 
 .profile_left img {
 	min-width: 80px;
-	width: 55%;
+	width: 80px;
+	height: 80px;
 	margin: 20px;
 	border: 5px solid #0b9382;
 	border-radius: 100px;
